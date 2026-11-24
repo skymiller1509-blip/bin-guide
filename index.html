@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bin Guide — which bin does it go in?</title>
+<meta name="description" content="Phone-first guide: type or photograph a waste item and find out which bin it goes in, with a plain-language reason why.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>Bin Guide</h1>
+    <p class="sub">Which bin does it go in? Type it, or take a photo and tell us what it is.</p>
+  </header>
+
+  <section class="ask" aria-label="Ask about an item">
+    <label for="query">What do you want to throw away?</label>
+    <input id="query" type="text" placeholder="e.g. plastic bottle, banana peel, battery" autocomplete="off" enterkeyhint="go">
+    <div class="row">
+      <button id="check" class="primary" type="button">Check the bin</button>
+      <label class="photo-btn" for="photo">📷 Photo
+        <input id="photo" type="file" accept="image/*" capture="environment" hidden>
+      </label>
+    </div>
+    <p class="note" id="photo-note" hidden></p>
+    <p class="honest">This app does not read your photo. It matches your words against a built-in guide, so nothing leaves your phone. No account, no tracking, no internet needed after load.</p>
+  </section>
+
+  <section id="result" class="result" hidden aria-live="polite">
+    <p class="bin-line"><span id="bin-dot" class="dot"></span><strong id="bin-name"></strong></p>
+    <p id="item-name" class="item-name"></p>
+    <p id="reason" class="reason"></p>
+    <p id="tip" class="tip"></p>
+    <p class="council">Rules are the common ones. Your council may differ, so check its website for the final word.</p>
+    <button id="again" class="secondary" type="button">Check another item</button>
+  </section>
+
+  <section id="unknown" class="unknown" hidden aria-live="polite">
+    <p><strong>I do not know that one yet.</strong></p>
+    <p>Try different words, or pick the closest item below.</p>
+    <div id="suggestions" class="chips"></div>
+    <button id="again2" class="secondary" type="button">Try again</button>
+  </section>
+
+  <section class="quick">
+    <h2>Try one</h2>
+    <div class="chips">
+      <button type="button" data-q="plastic bottle">Plastic bottle</button>
+      <button type="button" data-q="banana peel">Banana peel</button>
+      <button type="button" data-q="battery">Battery</button>
+      <button type="button" data-q="glass jar">Glass jar</button>
+      <button type="button" data-q="pizza box">Pizza box</button>
+      <button type="button" data-q="coffee cup">Coffee cup</button>
+    </div>
+  </section>
+
+  <section class="browse">
+    <h2>Browse everything</h2>
+    <div class="bin-tabs" role="tablist">
+      <button type="button" data-bin="recycling" class="tab tab-recycling" aria-selected="true">Recycling</button>
+      <button type="button" data-bin="compost" class="tab tab-compost" aria-selected="false">Compost</button>
+      <button type="button" data-bin="general" class="tab tab-general" aria-selected="false">General</button>
+      <button type="button" data-bin="hazardous" class="tab tab-hazardous" aria-selected="false">Hazardous</button>
+    </div>
+    <p id="bin-desc" class="bin-desc"></p>
+    <ul id="item-list" class="item-list"></ul>
+  </section>
+
+  <footer>
+    <p>Items sorted this visit: <strong id="count">0</strong></p>
+    <p>Bin Guide is a free, offline guide. It does not photograph-read, and it is not your council's official list.</p>
+  </footer>
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+(function () {
+  var queryEl = document.getElementById("query");
+  var resultEl = document.getElementById("result");
+  var unknownEl = document.getElementById("unknown");
+  var countEl = document.getElementById("count");
+  var sorted = 0;
+
+  function hideAll() { resultEl.hidden = true; unknownEl.hidden = true; }
+
+  function showResult(item) {
+    var bin = BINS[item.bin];
+    document.getElementById("bin-dot").style.background = bin.colour;
+    document.getElementById("bin-name").textContent = bin.label;
+    document.getElementById("bin-name").style.color = bin.colour;
+    document.getElementById("item-name").textContent = item.name;
+    document.getElementById("reason").textContent = item.reason;
+    document.getElementById("tip").textContent = item.tip ? "Tip: " + item.tip : "";
+    hideAll();
+    resultEl.hidden = false;
+    resultEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    sorted += 1;
+    countEl.textContent = sorted;
+  }
+
+  function showUnknown(suggestions) {
+    var box = document.getElementById("suggestions");
+    box.innerHTML = "";
+    suggestions.forEach(function (item) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = item.name;
+      b.addEventListener("click", function () { ask(item.name); });
+      box.appendChild(b);
+    });
+    hideAll();
+    unknownEl.hidden = false;
+  }
+
+  function ask(q) {
+    var found = findBin(q, ITEMS);
+    if (found.item) showResult(found.item);
+    else showUnknown(found.suggestions);
+  }
+
+  document.getElementById("check").addEventListener("click", function () {
+    if (queryEl.value.trim()) ask(queryEl.value);
+  });
+  queryEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && queryEl.value.trim()) ask(queryEl.value);
+  });
+  document.querySelectorAll(".quick .chips button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      queryEl.value = b.getAttribute("data-q");
+      ask(b.getAttribute("data-q"));
+    });
+  });
+
+  // Photo: attached as the user's own record only. The app says so plainly.
+  var photoNote = document.getElementById("photo-note");
+  document.getElementById("photo").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    photoNote.hidden = false;
+    photoNote.textContent = "Photo attached: " + f.name + ". Now type what it is below — the app reads your words, not the photo.";
+    queryEl.focus();
+  });
+
+  function reset() { hideAll(); queryEl.value = ""; queryEl.focus(); }
+  document.getElementById("again").addEventListener("click", reset);
+  document.getElementById("again2").addEventListener("click", reset);
+
+  // Browse by bin.
+  var listEl = document.getElementById("item-list");
+  var descEl = document.getElementById("bin-desc");
+  function showBin(binKey) {
+    var bin = BINS[binKey];
+    descEl.textContent = bin.short;
+    descEl.style.color = bin.colour;
+    listEl.innerHTML = "";
+    ITEMS.filter(function (i) { return i.bin === binKey; }).forEach(function (item) {
+      var li = document.createElement("li");
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = item.name;
+      b.addEventListener("click", function () { queryEl.value = item.name; ask(item.name); });
+      li.appendChild(b);
+      listEl.appendChild(li);
+    });
+    document.querySelectorAll(".bin-tabs .tab").forEach(function (t) {
+      t.setAttribute("aria-selected", t.getAttribute("data-bin") === binKey ? "true" : "false");
+    });
+  }
+  document.querySelectorAll(".bin-tabs .tab").forEach(function (t) {
+    t.addEventListener("click", function () { showBin(t.getAttribute("data-bin")); });
+  });
+  showBin("recycling");
+})();
+</script>
+</body>
+</html>
