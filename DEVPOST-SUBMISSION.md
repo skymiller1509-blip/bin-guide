@@ -82,7 +82,7 @@ https://github.com/skymiller1509-blip/bin-guide
 
 ## 12. Demo URL (working demo, hosted application or test build)
 
-TODO, GitHub Pages after the repo exists. It will be:
+LIVE 2026-11-24 (Pages build e5cf1435, index HTTP 200, verified by Mabel):
 
 ```
 https://skymiller1509-blip.github.io/bin-guide/
