@@ -74,7 +74,7 @@ HTML, CSS, JavaScript
 
 ## 11. Public GitHub repo URL
 
-TODO, create the repo first. It will be:
+LIVE 2026-11-24 (10 files, commit eaaaa314, verified by Mabel):
 
 ```
 https://github.com/skymiller1509-blip/bin-guide
