@@ -90,7 +90,7 @@ https://skymiller1509-blip.github.io/bin-guide/
 
 ## 13. Demo video URL
 
-TODO, film 2 to 3 minutes from VIDEO-SCRIPT.md and upload to YouTube.
+https://www.youtube.com/watch?v=ChGomzpFol8
 
 ## 14. Testing instructions or credentials for judges
 
