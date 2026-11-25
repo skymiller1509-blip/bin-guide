@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bin Guide — which bin does it go in?</title>
 <meta name="description" content="Phone-first guide: type or photograph a waste item and find out which bin it goes in, with a plain-language reason why.">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 <main class="wrap">
   <header>
-    <h1>Bin Guide</h1>
-    <p class="sub">Which bin does it go in? Type it, or take a photo and tell us what it is.</p>
+    <button id="sound-toggle" class="sound-toggle" type="button" aria-label="Turn sound off">🔊</button>
+    <h1>🗑️ Bin Guide</h1>
+    <p class="sub">Which bin does it go in? Type it, or take a photo and tell us what it is. Sort it right, save the planet!</p>
   </header>
 
   <section class="ask" aria-label="Ask about an item">
@@ -28,7 +29,7 @@
   </section>
 
   <section id="result" class="result" hidden aria-live="polite">
-    <p class="bin-line"><span id="bin-dot" class="dot"></span><strong id="bin-name"></strong></p>
+    <p class="bin-line"><span id="bin-emoji" class="bin-emoji"></span><span id="bin-dot" class="dot"></span><strong id="bin-name"></strong></p>
     <p id="item-name" class="item-name"></p>
     <p id="reason" class="reason"></p>
     <p id="tip" class="tip"></p>
@@ -83,18 +84,69 @@
   var countEl = document.getElementById("count");
   var sorted = 0;
 
+  // Fun sounds: tiny Web Audio chimes, no files, no network. Sound only
+  // plays after a tap, so browsers allow it. The 🔊 button turns it off.
+  var BIN_EMOJI = { recycling: "♻️", compost: "🌱", general: "🗑️", hazardous: "☠️" };
+  var audioCtx = null;
+  var soundOn = true;
+  function soundCtx() {
+    if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+  }
+  function tone(freq, when, dur, type, vol) {
+    var ac = soundCtx(); if (!ac) return;
+    var o = ac.createOscillator(); var g = ac.createGain();
+    o.type = type || "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, ac.currentTime + when);
+    g.gain.exponentialRampToValueAtTime(vol || 0.15, ac.currentTime + when + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + when + dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(ac.currentTime + when); o.stop(ac.currentTime + when + dur + 0.05);
+  }
+  function playPop() { if (!soundOn) return; tone(600, 0, 0.12, "triangle", 0.2); tone(900, 0.07, 0.12, "triangle", 0.15); }
+  function playChime(binKey) {
+    if (!soundOn) return;
+    var notes = { recycling: [523, 659, 784], compost: [392, 523, 659], general: [330, 392, 440], hazardous: [440, 349, 262] };
+    (notes[binKey] || notes.recycling).forEach(function (f, i) { tone(f, i * 0.12, 0.25, "sine", 0.18); });
+  }
+  function playWomp() { if (!soundOn) return; tone(300, 0, 0.2, "sawtooth", 0.08); tone(200, 0.15, 0.3, "sawtooth", 0.08); }
+  function burstConfetti(colour) {
+    var colours = [colour, "#ffd93d", "#ff6b9d", "#7b2ff7", "#2ec4b6"];
+    for (var i = 0; i < 16; i++) {
+      var s = document.createElement("span");
+      s.className = "confetti";
+      s.style.left = (5 + Math.random() * 90) + "%";
+      s.style.background = colours[i % colours.length];
+      s.style.animationDelay = (Math.random() * 0.2) + "s";
+      resultEl.appendChild(s);
+      (function (el) { setTimeout(function () { el.remove(); }, 1200); })(s);
+    }
+  }
+  var soundBtn = document.getElementById("sound-toggle");
+  soundBtn.addEventListener("click", function () {
+    soundOn = !soundOn;
+    soundBtn.textContent = soundOn ? "🔊" : "🔇";
+    soundBtn.setAttribute("aria-label", soundOn ? "Turn sound off" : "Turn sound on");
+    if (soundOn) playPop();
+  });
+
   function hideAll() { resultEl.hidden = true; unknownEl.hidden = true; }
 
   function showResult(item) {
     var bin = BINS[item.bin];
+    document.getElementById("bin-emoji").textContent = BIN_EMOJI[item.bin] || "♻️";
     document.getElementById("bin-dot").style.background = bin.colour;
     document.getElementById("bin-name").textContent = bin.label;
     document.getElementById("bin-name").style.color = bin.colour;
+    resultEl.style.borderColor = bin.colour;
     document.getElementById("item-name").textContent = item.name;
     document.getElementById("reason").textContent = item.reason;
     document.getElementById("tip").textContent = item.tip ? "Tip: " + item.tip : "";
     hideAll();
     resultEl.hidden = false;
+    playChime(item.bin);
+    burstConfetti(bin.colour);
     resultEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
     sorted += 1;
     countEl.textContent = sorted;
@@ -112,9 +164,11 @@
     });
     hideAll();
     unknownEl.hidden = false;
+    playWomp();
   }
 
   function ask(q) {
+    playPop();
     var found = findBin(q, ITEMS);
     if (found.item) showResult(found.item);
     else showUnknown(found.suggestions);
