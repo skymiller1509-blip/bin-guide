@@ -31,7 +31,7 @@ People want to recycle, but most sorting mistakes happen at the bin, in seconds,
 ## 4. What it does
 
 ```
-Type what you want to throw away, or tap Photo, take a picture, then type what it is, and the app tells you which bin it goes in: recycling, compost, general waste, or hazardous. The answer comes in big letters and colour, with a short plain-language reason why and one practical tip. You can also browse all 59 items by bin or tap a quick-pick chip. It works offline after the first load, and nothing leaves your phone.
+Type what you want to throw away, or tap Photo, take a picture, then type what it is, and the app tells you which bin it goes in: recycling, compost, general waste, or hazardous. The answer comes in big letters and colour, with a "Great! This goes in the..." line, a short plain-language reason why and one practical tip. You can also tap a picture tile for Plastic, Paper, Metal, Glass, Organic or General Waste, or browse all 59 items by bin. It works offline after the first load, and nothing leaves your phone.
 
 The app does not read photos. There is no image-recognition model in it, and the app says so on screen. A photo is your own record. The words you type do the classifying.
 ```
@@ -90,7 +90,7 @@ https://skymiller1509-blip.github.io/bin-guide/
 
 ## 13. Demo video URL
 
-https://www.youtube.com/watch?v=ChGomzpFol8
+https://www.youtube.com/watch?v=oEDWmDp4QdQ
 
 ## 14. Testing instructions or credentials for judges
 
