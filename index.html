@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bin Guide — which bin does it go in?</title>
 <meta name="description" content="Phone-first guide: type or photograph a waste item and find out which bin it goes in, with a plain-language reason why.">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 <main class="wrap">
   <header>
     <button id="sound-toggle" class="sound-toggle" type="button" aria-label="Turn sound off">🔊</button>
-    <h1>🗑️ Bin Guide</h1>
-    <p class="sub">Which bin does it go in? Type it, or take a photo and tell us what it is. Sort it right, save the planet!</p>
+    <h1>🌱 Bin Guide</h1>
+    <p class="sub">A cleaner world, one right bin at a time. Type it, or take a photo and tell us what it is.</p>
   </header>
 
   <section class="ask" aria-label="Ask about an item">
@@ -29,6 +29,7 @@
   </section>
 
   <section id="result" class="result" hidden aria-live="polite">
+    <p class="great-line">✅ <strong id="great-text"></strong></p>
     <p class="bin-line"><span id="bin-emoji" class="bin-emoji"></span><span id="bin-dot" class="dot"></span><strong id="bin-name"></strong></p>
     <p id="item-name" class="item-name"></p>
     <p id="reason" class="reason"></p>
@@ -45,14 +46,14 @@
   </section>
 
   <section class="quick">
-    <h2>Try one</h2>
-    <div class="chips">
-      <button type="button" data-q="plastic bottle">Plastic bottle</button>
-      <button type="button" data-q="banana peel">Banana peel</button>
-      <button type="button" data-q="battery">Battery</button>
-      <button type="button" data-q="glass jar">Glass jar</button>
-      <button type="button" data-q="pizza box">Pizza box</button>
-      <button type="button" data-q="coffee cup">Coffee cup</button>
+    <h2>Tap what it looks like</h2>
+    <div class="tiles">
+      <button type="button" data-q="plastic bottle"><span class="tile-img">🧴</span><span class="tile-label">Plastic</span></button>
+      <button type="button" data-q="newspaper"><span class="tile-img">📰</span><span class="tile-label">Paper</span></button>
+      <button type="button" data-q="tin can"><span class="tile-img">🥫</span><span class="tile-label">Metal</span></button>
+      <button type="button" data-q="glass jar"><span class="tile-img">🍾</span><span class="tile-label">Glass</span></button>
+      <button type="button" data-q="banana peel"><span class="tile-img">🍌</span><span class="tile-label">Organic</span></button>
+      <button type="button" data-q="coffee cup"><span class="tile-img">☕</span><span class="tile-label">General Waste</span></button>
     </div>
   </section>
 
@@ -135,6 +136,7 @@
 
   function showResult(item) {
     var bin = BINS[item.bin];
+    document.getElementById("great-text").textContent = "Great! This goes in the " + bin.label + " bin.";
     document.getElementById("bin-emoji").textContent = BIN_EMOJI[item.bin] || "♻️";
     document.getElementById("bin-dot").style.background = bin.colour;
     document.getElementById("bin-name").textContent = bin.label;
@@ -180,7 +182,7 @@
   queryEl.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && queryEl.value.trim()) ask(queryEl.value);
   });
-  document.querySelectorAll(".quick .chips button").forEach(function (b) {
+  document.querySelectorAll(".quick .tiles button").forEach(function (b) {
     b.addEventListener("click", function () {
       queryEl.value = b.getAttribute("data-q");
       ask(b.getAttribute("data-q"));
